@@ -17,8 +17,10 @@ time = np.arange(sound.shape[0]) / sound.shape[0] * length_in_s
 
 dom_freq = []
 
-samp_range = int(sampFreq/10)
+samp_range = int(sampFreq/9.4)
 count = 0
+fft_ret = np.zeros((94, 2554))
+t_constant = 0
 
 while count < len(sound):
     
@@ -35,15 +37,29 @@ while count < len(sound):
     # plt.ylabel("Amplitude, units")
     # plt.show()
 
-    
+    spec = True
 
-    fft_data = np.fft.fft(sample)
-    freqs = np.fft.fftfreq(len(sample))
-    
-    peak_coefficient = np.argmax(np.abs(fft_data))
-    peak_freq = freqs[peak_coefficient]
-    
-    dom_freq.append(abs(peak_freq * sampFreq))
+    if spec:
+        # fft_spectrum_avg = []
+        # sum = 0
+        # for i in range(1, 2554):
+        #     sum += fft_spectrum_abs[i]
+        #     if (i % 16 == 0):
+        #         fft_spectrum_avg.append(sum/16.0)
+        #         sum = 0
+        # fft_spectrum_avg.append((fft_spectrum_abs[-1]+fft_spectrum_avg[-2])/2.0)
+
+        fft_ret[t_constant] = fft_spectrum_abs
+        t_constant += 1
+
+    else:
+        fft_data = np.fft.fft(sample)
+        freqs = np.fft.fftfreq(len(sample))
+
+        peak_coefficient = np.argmax(np.abs(fft_data))
+        peak_freq = freqs[peak_coefficient]
+
+        dom_freq.append(abs(peak_freq * sampFreq))
     # g = 0
     # g_freq = 0
     # index = 0
@@ -63,14 +79,12 @@ for i in range(len(dom_freq)):
     t += 0.1
 
 dom_freq = np.divide(dom_freq, 10)
-
 spec_matrix = np.column_stack((new_time, dom_freq))
-
-print(dom_freq)
+print(fft_ret.size)
 # plt.plot(new_time, dom_freq)
-plt.imshow(np.transpose(spec_matrix), extent=[0,9.4,0,1000], cmap='jet',
-           vmin=0, vmax=100, origin = "lower", aspect='auto')
+plt.imshow(np.transpose(fft_ret), extent=[0,9.4,0,1000], cmap='jet',
+           vmin=0, vmax=10000, origin = "lower", aspect='auto')
 plt.colorbar()
 plt.xlabel("time (s)")
-plt.ylabel("dominant frequency - tone in Hz (adjusted)")
+plt.ylabel("frequency ")
 plt.show()
