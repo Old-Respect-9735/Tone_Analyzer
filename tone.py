@@ -1,12 +1,23 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.io import wavfile
+from scipy.signal import butter, filtfilt
 
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['figure.figsize'] = (9, 7)
 
 # input the recorded wav file
 sampFreq, sound = wavfile.read("C:/Users/User/Downloads/Tone_Analyzer-main/Tone_Analyzer-main/test_audio.wav")
+
+# filtering proceess (butterworth filter - lowpass)
+nyq = 0.5 * len(sound)/9.4
+order = 12 #experimental
+cutoff = 1000
+normal_cutoff = cutoff / nyq
+# Get the filter coefficients 
+b, a = butter(order, normal_cutoff, btype='low', analog=False)
+sound = filtfilt(b, a, sound)
+
 
 # sampling rate for MinecraftAudio.wav = 48000 (samples per second)
 # print(sound.dtype, sampFreq)
@@ -21,6 +32,8 @@ samp_range = int(sampFreq/9.4)
 count = 0
 fft_ret = np.zeros((94, 2554))
 t_constant = 0
+check = True
+single = []
 
 while count < len(sound):
     
@@ -48,9 +61,12 @@ while count < len(sound):
         #         fft_spectrum_avg.append(sum/16.0)
         #         sum = 0
         # fft_spectrum_avg.append((fft_spectrum_abs[-1]+fft_spectrum_avg[-2])/2.0)
-
+        fft_spectrum_abs = np.log(fft_spectrum_abs)
         fft_ret[t_constant] = fft_spectrum_abs
         t_constant += 1
+        # if check:
+        #     single = fft_spectrum_abs
+        #     check = False
 
     else:
         fft_data = np.fft.fft(sample)
@@ -81,10 +97,10 @@ for i in range(len(dom_freq)):
 dom_freq = np.divide(dom_freq, 10)
 spec_matrix = np.column_stack((new_time, dom_freq))
 print(fft_ret.size)
-# plt.plot(new_time, dom_freq)
-plt.imshow(np.transpose(fft_ret), extent=[0,9.4,0,1000], cmap='jet',
-           vmin=0, vmax=10000, origin = "lower", aspect='auto')
+# plt.plot(range(2554), single)
+plt.imshow(np.transpose(fft_ret), extent=[0,9.4,0,2554], cmap='jet',
+           vmin=0, vmax=20, origin = "lower", aspect='auto')
 plt.colorbar()
 plt.xlabel("time (s)")
-plt.ylabel("frequency ")
-plt.show()
+plt.ylabel("frequency (logged)")
+plt.show() 
