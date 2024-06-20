@@ -5,28 +5,31 @@ from scipy.signal import butter, filtfilt, buttord
 
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['figure.figsize'] = (9, 7)
-fig, (ax1, ax2) = plt.subplots(2)
+# fig, (ax1, ax2) = plt.subplots(2)
 
 # input the recorded wav file
 sampFreq, sound = wavfile.read("C:/Users/User/Downloads/Tone_Analyzer-main/Tone_Analyzer-main/test.wav")
 sound = sound[:,0]
-samp_range = int(len(sound)/49)
-fs = int(len(sound)/4.9)
+print(len(sound))
+samp_range = int(len(sound)/49.0)
+fs = int(sound.size/4.9)
 # filtering proceess (butterworth filter - lowpass)
 single = []
-single = np.log(np.abs(np.fft.rfft(sound[:samp_range])))
-freq = np.fft.rfftfreq(sound[:samp_range].size, d=1./samp_range)
-ax1.plot(freq, single)
-print(len(single))
-print(freq)
+# single = np.log(np.abs(np.fft.rfft(sound[:samp_range])))
+# freq = np.fft.rfftfreq(sound[:samp_range].size, d=1./samp_range)
+# ax1.plot(freq, single)
+# print(len(single))
+# print(freq)
 # n, wn = buttord(0.5, 0.6, 3, 40)
-normal_cutoff = 300 / (0.5 * len(sound)/4.9)
-# Get the filter coefficients 
-b, a = butter(9, normal_cutoff, btype='low', analog=False)
-# b, a = butter(n, wn, btype='low', analog=False)
 
+normal_cutoff = 3000 / (0.5 * len(sound)/4.9)
+b, a = butter(9, normal_cutoff, btype='low', analog=False)
 sound = filtfilt(b, a, sound, axis = 0)
-single = []
+
+# single = np.log(np.abs(np.fft.rfft(sound[:samp_range])))
+# freq = np.fft.rfftfreq(sound[:samp_range].size, d=1./samp_range)
+# ax2.plot(freq, single)
+# plt.show()
 # single = np.log(np.abs(np.fft.rfft(sound[:samp_range])))
 # freq = np.fft.rfftfreq(len(sound[:samp_range]), d=1./fs)
 # freq = freq[1:]
@@ -44,7 +47,7 @@ time = np.arange(sound.shape[0]) / sound.shape[0] * length_in_s
 dom_freq = []
 
 count = 0
-fft_ret = np.zeros((1, 4009))
+fft_ret = np.zeros((49, 2890))
 t_constant = 0
 check = True
 
@@ -57,32 +60,19 @@ while count < len(sound):
     freq = np.fft.rfftfreq(sample.size, d=1./fs)
     fft_spectrum_abs = np.abs(fft_spectrum)
 
-    # plt.plot(freq[count:int(count + samp_range)], fft_spectrum_abs[count:int(count + samp_range)])
-    # plt.xlabel("frequency, Hz")
-    # plt.ylabel("Amplitude, units")
-    # plt.show()
-
     spec = True
 
     if spec:
-        # fft_spectrum_avg = []
-        # sum = 0
-        # for i in range(1, 2554):
-        #     sum += fft_spectrum_abs[i]
-        #     if (i % 16 == 0):
-        #         fft_spectrum_avg.append(sum/16.0)
-        #         sum = 0
-        # fft_spectrum_avg.append((fft_spectrum_abs[-1]+fft_spectrum_avg[-2])/2.0)
         fft_spectrum_abs = np.log(fft_spectrum_abs)
-        # fft_ret[t_constant] = fft_spectrum_abs
+        fft_ret[t_constant] = fft_spectrum_abs
         t_constant += 1
-        if check:
-            single = fft_spectrum_abs
-            check = False
-            if count == 0:
-                print(len(single))
-                print(freq)
-            ax2.plot(freq/10.0, single)
+        # if check:
+        #     single = fft_spectrum_abs
+        #     check = False
+        #     if count == 0:
+        #         print(len(single))
+        #         print(freq)
+            # ax2.plot(freq, single)
 
     else:
         fft_data = np.fft.fft(sample)
@@ -111,10 +101,10 @@ for i in range(len(dom_freq)):
     t += 0.1
 
 # dom_freq = np.divide(dom_freq, 10)
-# spec_matrix = np.column_stack((new_time, dom_freq))
-# plt.imshow(np.transpose(fft_ret), extent=[0,2,0,2554], cmap='jet',
-#            vmin=0, vmax=20, origin = "lower", aspect='auto')
-# plt.colorbar()
-plt.xlabel("frequency (hz)") 
-plt.ylabel("amplitude")
+spec_matrix = np.column_stack((new_time, dom_freq))
+plt.imshow(np.transpose(fft_ret), extent=[0,4.9,0,2890], cmap='jet',
+           vmin=0, vmax=20, origin = "lower", aspect='auto')
+plt.colorbar()
+plt.xlabel("time (s)") 
+plt.ylabel("frequency (hz)")
 plt.show() 
