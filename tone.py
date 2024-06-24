@@ -50,6 +50,7 @@ count = 0
 fft_ret = np.zeros((49, 2890))
 t_constant = 0
 check = True
+db = []
 
 while count < len(sound):
     
@@ -61,18 +62,14 @@ while count < len(sound):
     fft_spectrum_abs = np.abs(fft_spectrum)
 
     spec = True
-
+    
     if spec:
         fft_spectrum_abs = np.log(fft_spectrum_abs)
         fft_ret[t_constant] = fft_spectrum_abs
         t_constant += 1
-        # if check:
-        #     single = fft_spectrum_abs
-        #     check = False
-        #     if count == 0:
-        #         print(len(single))
-        #         print(freq)
-            # ax2.plot(freq, single)
+        db.append(10 * np.log(np.mean(np.power(fft_spectrum_abs, 2))))
+        
+
 
     else:
         fft_data = np.fft.fft(sample)
@@ -94,17 +91,20 @@ while count < len(sound):
     # dom_freq.append(g_freq)
     
     count += samp_range
+
+print(db)
+
 new_time = []
 t = 0
 for i in range(len(dom_freq)):
     new_time.append(t)
     t += 0.1
 
-# dom_freq = np.divide(dom_freq, 10)
-spec_matrix = np.column_stack((new_time, dom_freq))
-plt.imshow(np.transpose(fft_ret), extent=[0,4.9,0,2890], cmap='jet',
-           vmin=0, vmax=20, origin = "lower", aspect='auto')
-plt.colorbar()
-plt.xlabel("time (s)") 
-plt.ylabel("frequency (hz)")
+plt.plot(range(len(db)), db)
+
+# plt.imshow(np.transpose(fft_ret), extent=[0,4.9,0,2890], cmap='jet',
+#            vmin=0, vmax=20, origin = "lower", aspect='auto')
+# plt.colorbar()
+plt.xlabel("time (samples)") 
+plt.ylabel("magnitude (dB)")
 plt.show() 
